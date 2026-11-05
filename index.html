@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paleta Malarza — pracownia koloru</title>
+<meta name="theme-color" content="#f7f4ee">
+<meta name="description" content="Paleta Malarza — analiza kolorów i planowanie palet do malowania.">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
+
+<style>
+:root{--ink:#28251f;--muted:#777168;--paper:#f7f4ee;--card:#fffdfa;--line:#e8e1d7;--accent:#286c68;--soft:#e8f0eb}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:30px max(22px,calc((100vw - 1180px)/2)) 20px;background:#eee8dd;border-bottom:1px solid var(--line)}
+.kicker{font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font:500 clamp(28px,4vw,42px)/1.12 Georgia,serif;margin:7px 0}header p{margin:8px 0 0;color:#625c53;max-width:720px}
+main{max-width:1180px;margin:24px auto;padding:0 20px 60px}
+nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:22px}
+nav button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 15px;border-radius:999px;cursor:pointer;font:inherit}
+nav button.active,.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 5px 20px #342a1608}
+h2{font:500 25px Georgia,serif;margin:0 0 8px}h3{font-size:17px;margin:0 0 10px}p.note,.muted{color:var(--muted);font-size:13px}
+.upload{display:block;position:relative;width:100%;min-width:0;max-width:100%;min-height:112px;border:1.5px dashed #c8bdae;border-radius:15px;padding:24px;text-align:center;background:#fcfaf6;cursor:pointer;overflow:hidden;clear:both}
+.upload input{display:none}.upload strong,.upload span{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere}.upload strong{font-size:17px}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0}
+input[type=range]{accent-color:var(--accent)}select{padding:9px;border:1px solid var(--line);border-radius:9px;background:white}
+.preview{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:18px;align-items:start}
+.preview img{width:100%;max-height:440px;object-fit:contain;background:#eee;border-radius:12px}
+.palette{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.swatch{min-width:0}.chip{height:76px;border-radius:12px;border:1px solid #0000000c;cursor:pointer;position:relative}
+.swatch small{display:block;color:var(--muted);font-size:12px;overflow-wrap:anywhere}.swatch b{font-size:13px;font-weight:600}
+.tag{display:inline-block;background:var(--soft);color:#2e6558;border-radius:30px;padding:3px 9px;font-size:11px;margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:13px}
+.pal-card{background:var(--card);border:1px solid var(--line);padding:14px;border-radius:15px;cursor:pointer;text-align:left;color:inherit}
+.pal-card:hover{border-color:#8ca9a0;transform:translateY(-1px)}
+.strip{display:flex;height:66px;border-radius:10px;overflow:hidden;margin:9px 0}
+.strip span{flex:1;min-width:0}.pal-card h3{margin:0;font-size:16px}.pal-card p{margin:0;color:var(--muted);font-size:12px}
+.filterrow{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+input[type=search],input[type=color]{border:1px solid var(--line);border-radius:10px;padding:10px;background:white}
+.wheel-layout{display:grid;grid-template-columns:minmax(280px,1fr) minmax(260px,.8fr);gap:24px;align-items:center}
+#wheel{width:100%;max-width:470px;display:block;margin:auto;cursor:crosshair}
+.scheme-list{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.scheme-list button{padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:white;cursor:pointer}.scheme-list button.active{background:var(--accent);color:white}
+.hexrow{display:flex;gap:7px;flex-wrap:wrap}.hexrow button{border:0;background:transparent;padding:0;cursor:pointer}
+.hexrow .chip{width:66px;height:55px}.hexrow small{display:block;color:var(--muted);font-size:11px}
+.tip{background:#f1eee7;border-radius:12px;padding:13px;margin-top:12px;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}
+@media(max-width:760px){main{padding:0 12px 38px;margin:14px auto}header{padding:22px 16px 18px}.card{padding:15px;border-radius:14px}.preview,.wheel-layout{grid-template-columns:minmax(0,1fr);gap:14px}.preview>*{min-width:0}.preview img{max-height:330px}.palette{grid-template-columns:repeat(2,minmax(0,1fr))}.chip{height:65px}.grid{grid-template-columns:minmax(0,1fr)}nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}nav button{padding:9px 7px;font-size:13px}.upload{padding:20px 12px;min-height:105px}.controls>*{max-width:100%}.filterrow>*{min-width:0;flex:1}#wheel{max-width:360px}}
+@media(max-width:380px){h2{font-size:22px}.swatch b{font-size:12px}.swatch small{font-size:11px}}
+
+#projectCanvas{display:block;max-height:520px;object-fit:contain}#subjectFile{display:none}
+@media(max-width:760px){#project .controls{align-items:stretch;flex-direction:column}#project .controls label,#project .controls select,#project .controls button{width:100%}#projectCanvas{max-height:380px}.preview{grid-template-columns:minmax(0,1fr)}}
+</style></head>
+<body>
+<header><div class="kicker">Pracownia koloru · narzędzie dla malarzy</div><h1>Paleta Malarza</h1><p>Odkrywaj kolory na podstawie własnych zdjęć, szukaj nieoczywistych akcentów i buduj świadome zestawienia malarskie.</p></header>
+<main>
+<nav>
+<button class="active" data-tab="photo">Analiza zdjęcia</button><button data-tab="library">Palety inspiracyjne</button><button data-tab="wheelTab">Koło barw</button><button data-tab="guide">Mała ściąga malarska</button>
+</nav>
+<section id="photo" class="panel active">
+<div class="card"><h2>Kolory z Twojego zdjęcia</h2><p class="note">Analiza próbuje rozdzielić rzeczywiste grupy barw, zamiast uśredniać całe zdjęcie. Próbki są pobierane z wielu punktów, a podobne odcienie grupowane w przestrzeni CIELAB. Kliknij fragment zdjęcia, aby sprawdzić konkretny kolor.</p>
+<div class="upload" id="drop" role="button" tabindex="0"><strong>Wgraj zdjęcie obrazu lub fotografię</strong><span class="muted">Kliknij albo przeciągnij plik JPG, PNG lub WebP</span><input id="file" type="file" accept="image/*"></div>
+<div id="photoArea" class="hidden">
+<div class="preview" style="margin-top:18px"><div><img id="preview" alt="Wgrane zdjęcie"><p class="note">Kliknij zdjęcie, aby pobrać kolor z wybranego miejsca.</p></div><div><h3>Kolor wskazany na zdjęciu</h3><div id="picked"></div><div class="controls"><label>Liczba kolorów <select id="count"><option>5</option><option selected>7</option><option>9</option><option>12</option></select></label><button class="btn primary" id="analyze">Analizuj ponownie</button></div><p class="note">Wynik zależy od światła, jakości fotografii i ustawień ekranu. To analiza barw cyfrowych, nie dokładny przepis na pigmenty.</p></div></div>
+<div class="card" style="margin-top:16px"><h3>Najważniejsze kolory ze zdjęcia</h3><div id="extracted" class="palette"></div><div id="paintRecipes" style="margin-top:18px"></div></div>
+<div class="card"><h3>Kolory, które mogą z nimi zagrać</h3><div id="generated"></div></div>
+<div class="card" id="paintingPlanCard"><h3>Plan kolorystyczny do obrazu</h3>
+<p class="note">Na podstawie zdjęcia przygotuję propozycję gruntu, warstw, przecierek i akcentów. To plan malarski, nie automatyczny projekt kompozycji.</p>
+<div class="scheme-list" id="paintingStyles" style="margin:14px 0">
+<button class="active" data-painting-style="layered">Warstwowy z przecierkami</button>
+<button data-painting-style="light">Jasny i subtelny</button>
+<button data-painting-style="bold">Ekspresyjny</button>
+<button data-painting-style="warm">Ciepły</button>
+<button data-painting-style="complementary">Dopełniający</button>
+<button data-painting-style="neon">Neonowy</button>
+</div>
+<div id="paintingPlan"><span class="muted">Wgraj zdjęcie, aby otrzymać plan kolorystyczny.</span></div>
+</div>
+</div></div>
+</section>
+
+<section id="library" class="panel">
+<div class="card"><h2>Biblioteka palet inspiracyjnych</h2><p class="note">Ponad 40 autorskich zestawień: od subtelnych pejzaży po odważne, nieoczywiste kontrasty. Wybierz paletę, aby zobaczyć nazwy i kody kolorów.</p>
+<div class="filterrow"><input id="search" type="search" placeholder="Szukaj: morze, portret, zieleń…"><select id="category"><option value="all">Wszystkie nastroje</option><option>Spokojne</option><option>Romantyczne</option><option>Kontrastowe</option><option>Pejzaż</option><option>Portret</option><option>Vintage</option></select></div>
+<div id="palettes" class="grid"></div></div>
+<div id="detail" class="card hidden"><h2 id="detailTitle"></h2><p id="detailDesc" class="muted"></p><div id="detailColors" class="palette"></div><div class="actions" style="margin-top:14px"><button class="btn" id="copyPalette">Kopiuj kody HEX</button></div></div>
+</section>
+<section id="wheelTab" class="panel">
+<div class="card"><h2>Koło barw i harmonia kolorystyczna</h2><p class="note">Wybierz punkt na kole albo użyj próbnika. Zobaczysz relacje barwne i gotowe zestawienie. Koło jest modelem relacji odcieni — pigmenty w farbach zachowują się inaczej niż światło na ekranie.</p>
+<div class="wheel-layout"><div><svg id="wheel" viewBox="0 0 420 420" role="img" aria-label="Interaktywne koło barw"><circle cx="210" cy="210" r="180" fill="#fff" stroke="#ddd"/></svg></div><div><h3>Kolor bazowy</h3><div class="controls"><input id="baseColor" type="color" value="#167c80"><span id="baseHex">#167C80</span></div><h3>Rodzaj zestawienia</h3><div class="scheme-list" id="schemes"><button class="active" data-s="analog">Sąsiednie</button><button data-s="comp">Dopełniające</button><button data-s="split">Rozdzielone</button><button data-s="triad">Triada</button><button data-s="tetrad">Tetrada</button><button data-s="mono">Monochromatyczne</button></div><div id="wheelResult" class="hexrow"></div><div id="schemeTip" class="tip"></div></div></div></div>
+</section>
+<section id="guide" class="panel">
+<div class="card"><h2>Mała ściąga malarska</h2><div class="grid">
+<div class="tip"><b>Kolory dopełniające</b><br>Leżą naprzeciw siebie. Zestawione obok siebie wzmacniają wrażenie kontrastu; mieszane mogą dawać stonowane szarości i brązy.</div>
+<div class="tip"><b>Kolory analogiczne</b><br>Sąsiadują na kole. Dają spokojne, spójne zestawienia — świetne do pejzaży, nieba i wody.</div>
+<div class="tip"><b>Kontrast temperatury</b><br>Ciepłe światło na chłodnym cieniu albo chłodne światło na ciepłym podłożu pomaga budować przestrzeń.</div>
+<div class="tip"><b>Nieoczywisty akcent</b><br>Wybierz mały fragment w kolorze z przeciwnej strony koła. Nie musi być czysty ani jaskrawy — przygaszony akcent często wygląda szlachetniej.</div>
+<div class="tip"><b>Barwa, walor, nasycenie</b><br>Przed doborem odcienia sprawdź, czy kolory różnią się jasnością. Zestaw o podobnym walorze może zlać się nawet wtedy, gdy odcienie są różne.</div>
+<div class="tip"><b>Cienie</b><br>Nie przyciemniaj wszystkiego czernią. Spróbuj chłodniejszego odpowiednika barwy lokalnej lub odrobiny koloru dopełniającego.</div>
+</div></div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
+const names=[['#087F83','Turkus'],['#C99EAE','Pudrowy róż'],['#C5A15D','Złoto'],['#D9C5A8','Piaskowy'],['#A9C1D0','Błękit'],['#C66D4F','Terakota'],['#E5B7A5','Brzoskwinia'],['#526B58','Szałwia'],['#66536F','Śliwka'],['#D7B7C8','Wrzos'],['#E8DCC8','Kość słoniowa'],['#344D5B','Granat']];
+function colorCard(c){let [hex,name]=c;return `<div class="swatch"><div class="chip" style="background:${hex}" title="Kliknij, aby skopiować ${hex}" onclick="navigator.clipboard?.writeText('${hex}')"></div><b>${name}</b><small>${hex}</small></div>`}
+const data=[
+['Nadmorski poranek','Spokojne','Chłodne morze, ciepły piasek i delikatny akcent różu',['#176F78','#A9C3CC','#DCC9AD','#D5A9B6','#B58B55']],
+['Nadmorska elegancja','Romantyczne','Turkus, pudrowy róż, złoto i miękki błękit',['#087F83','#C99EAE','#C5A15D','#D9C5A8','#A9C1D0']],
+['Sól i terakota','Kontrastowe','Morski chłód przełamany rdzawą czerwienią',['#087C80','#C56F50','#E3B8A4','#D7C4A7','#A9C1D0']],
+['Zatoka o zmierzchu','Pejzaż','Granat, morska zieleń i przygaszone światło',['#243C4A','#356B70','#78918A','#D6A77B','#E7D6BD']],
+['Różowe wydmy','Romantyczne','Pastelowy róż z ciepłym piaskiem',['#B98291','#D7B5B8','#E8D8C2','#B9C5C2','#687D7C']],
+['Ogród po deszczu','Pejzaż','Zielenie, mokra ziemia i chłodne światło',['#354F3F','#6D876B','#A7B6A0','#8B6D5B','#D9D3C4']],
+['Złota godzina','Romantyczne','Miodowe światło, morela i śliwkowy cień',['#D59A48','#E7B77C','#C87861','#80566A','#4E536B']],
+['Stary port','Vintage','Patyna, drewno i wyblakły błękit',['#426B70','#8DA6A1','#B58D69','#D4C2A5','#725D52']],
+['Mak i len','Kontrastowe','Czerwień maku na tle lnianych beży',['#B83C35','#D77B61','#E6D8C1','#8A9A86','#4A5550']],
+['Cisza w lesie','Pejzaż','Głębokie zielenie z rozświetlonym kremem',['#263E35','#48664F','#8A9A76','#C5B78E','#E9E0C9']],
+['Lawendowy zmierzch','Romantyczne','Lawenda i ciepły róż w chłodnym świetle',['#6E668C','#A69AB9','#D3B8C1','#E7D5C7','#657B91']],
+['Cytrusy i cień','Kontrastowe','Kwaśna żółć, głęboki fiolet i zieleń',['#D6B52F','#78934B','#4B455F','#C46C48','#E9D9B5']],
+['Portret w świetle okna','Portret','Ciepła skóra, zgaszony błękit i brąz',['#C98568','#E4B99C','#8C6557','#657C8C','#D7C7B4']],
+['Porcelanowa lalka','Portret','Jasne róże i chłodne półcienie',['#E8C6BB','#C98E91','#A6A9B7','#77798B','#F0E4D7']],
+['Miodowy portret','Portret','Ochry, karmel i oliwkowy cień',['#C58B42','#E0B66F','#A96F4D','#59644A','#E8D9B9']],
+['Błękitny sen','Spokojne','Jasne błękity i miękkie szarości',['#7399B2','#A9C5D2','#D7E0DD','#B9A9A9','#E8D8C6']],
+['Zimowy ogród','Pejzaż','Srebrzyste szarości z jednym czerwonym akcentem',['#AEBBC0','#D9D9D2','#788A88','#8E4C4A','#F0E9DC']],
+['Jesienne liście','Pejzaż','Ogniste oranże i przygaszone oliwki',['#B85F36','#D18A45','#D5B76A','#6F7650','#4C5142']],
+['Morela i petrol','Kontrastowe','Nieoczywisty duet ciepłej moreli i petrolu',['#D98D6E','#E8B99B','#17636A','#344B52','#E8D9C8']],
+['Śliwka i musztarda','Kontrastowe','Głęboki fiolet przełamany złotą żółcią',['#563B59','#80607A','#C4A044','#E0C77C','#E9DDC9']],
+['Róż i oliwka','Kontrastowe','Romantyczny róż z ziemistą zielenią',['#C98F9D','#E0B7B7','#7B8054','#A4A078','#E8DCCB']],
+['Nocne niebo','Pejzaż','Granaty, atrament i ciepłe światło',['#172B45','#294A68','#5E7185','#D29A55','#E8D7B9']],
+['Kobalt i mandarynka','Kontrastowe','Mocny błękit z pomarańczowym akcentem',['#244F9A','#4B79B7','#E17A3D','#F0B56C','#E8E0D2']],
+['Mięta i koral','Romantyczne','Świeża mięta z miękkim koralem',['#79AAA0','#B5D0C3','#E58C79','#D7B0A5','#F1E6D6']],
+['Kredowy błękit','Spokojne','Pastelowa, rozbielona gama',['#B6CDD5','#D9E1DC','#E9D9C8','#C8B5B0','#8EABB2']],
+['Stare płótno','Vintage','Naturalne pigmenty, sepia i ochra',['#6B5142','#A47B53','#C5A16C','#D8C9A9','#7D8573']],
+['Czerwone jabłko','Kontrastowe','Czerwień i chłodna zieleń w spokojnych tonach',['#A93636','#D16D5D','#6F8B69','#B4B99B','#E6D9C4']],
+['Wrzosowisko','Pejzaż','Fiolety, zielenie i ziemiste tło',['#78617D','#A18AA1','#687B61','#B1A17E','#E1D4BD']],
+['Poranek w Prowansji','Romantyczne','Lawenda, len i oliwka',['#8D829F','#B7A9BC','#D9CBB6','#777D5A','#E9E0D1']],
+['Karmel i petrol','Kontrastowe','Ciepły karmel i chłodna głęboka zieleń',['#B8794C','#D6A16E','#145B60','#53817B','#E5D6C1']],
+['Szept różu','Spokojne','Bardzo subtelna gama do delikatnych scen',['#D8B7B8','#E8D6D0','#C7B8B0','#A6B4B1','#F0E9DF']],
+['Tropikalny ogród','Pejzaż','Szmaragd, limonka i kwiatowy róż',['#087E70','#4A9B79','#B7B84E','#D77F91','#F0D6B9']],
+['Ciepły monochrom','Vintage','Różne wartości jednej rodziny terakoty',['#713F35','#9C5948','#C77C62','#DFA88E','#F0D6C1']],
+['Chłodny portret','Portret','Błękitne półcienie i ciepła skóra',['#4F687D','#8499A4','#C78E77','#E0B49B','#E9DCCB']],
+['Zielone szkło','Spokojne','Szmaragd i mleczne, szkliste tony',['#1E6158','#54877A','#9CBBAA','#D3DCCB','#EAE4D6']],
+['Kwiat wiśni','Romantyczne','Róż, śliwka i świeża zieleń',['#D99AA8','#EBC7C7','#80566D','#789078','#F1E4D6']],
+['Miedź i błękit','Kontrastowe','Miedziany akcent na tle stalowego błękitu',['#B66D4B','#D59B75','#526E87','#91A8B5','#E4D8C6']],
+['Ziemia i niebo','Pejzaż','Naturalne brązy z chłodnym błękitem',['#795A43','#B28A62','#D6C4A7','#6F91A2','#B6C9C9']],
+['Kremowa wanilia','Spokojne','Jasne, ciepłe neutrale z oliwką',['#E8DCC5','#D5C2A5','#B4A184','#7F8063','#AEB8A9']],
+['Kobalt i ochra','Vintage','Klasyczne zestawienie o malarskim charakterze',['#28558B','#507AA3','#C69A43','#D8B86C','#E6D8BE']],
+['Nocny ogród','Kontrastowe','Ciemna zieleń, granat i świetlisty koral',['#203A32','#304C5A','#6E7661','#D77F68','#E7C9A9']],
+['Bursztyn i fiołek','Kontrastowe','Ciepły bursztyn kontra chłodny fiolet',['#C58A37','#E0B35E','#76658E','#A79AB5','#E8DCCB']],
+['Morska mgła','Pejzaż','Zgaszone turkusy i mglisty beż',['#4F8585','#83A9A6','#B8C9C2','#D8CBB7','#9DADB5']]
+];
+function toName(hex){
+ const clean=hex.replace('#','');
+ const r=parseInt(clean.slice(0,2),16)/255,g=parseInt(clean.slice(2,4),16)/255,b=parseInt(clean.slice(4,6),16)/255;
+ const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min,L=(max+min)/2;
+ let H=0,S=0;
+ if(delta>0.00001){
+  S=delta/(1-Math.abs(2*L-1));
+  if(max===r)H=60*(((g-b)/delta)%6);
+  else if(max===g)H=60*((b-r)/delta+2);
+  else H=60*((r-g)/delta+4);
+  if(H<0)H+=360;
+ }
+ const light=L*100,sat=S*100;
+ const near=(a,bv)=>Math.abs(a-bv);
+ // Neutrale i barwy złamane — nie nazywamy ich różem tylko dlatego, że R > G > B.
+ if(sat<11){
+  if(light<22)return 'Grafitowy / prawie czarny';
+  if(light<43)return H>12&&H<48?'Ciemny szarobrązowy':'Ciemny szary';
+  if(light<68)return H>12&&H<48?'Szarobrązowy (taupe)':'Szary';
+  return H>12&&H<55?'Ciepły jasny beż':'Jasny szary';
+ }
+ if(H>=18&&H<43){
+  if(light<23)return 'Bardzo ciemny brąz';
+  if(light<39)return sat<32?'Ciemny szarobrązowy':'Ciemny brąz';
+  if(light<57)return sat<24?'Ciepły szarobrązowy':(H<30?'Karmelowy brąz':'Ochra / ugier');
+  if(light<72)return sat<28?'Piaskowy beż':(H<29?'Toffi / karmel':'Złocisty beż');
+  return sat<27?'Jasny beż':'Piaskowy / miodowy';
+ }
+ if(H>=8&&H<18){
+  if(light<35)return 'Rdzawy brąz';
+  return light>65?'Brzoskwiniowy':'Terakotowy / rdzawy';
+ }
+ if(H>=0&&H<8||H>=350){
+  if(light<28)return 'Bordowy';
+  if(light<52)return 'Ciemna czerwień';
+  return sat<35?'Zgaszony róż':'Czerwień';
+ }
+ if(H>=330&&H<350){
+  if(light<35)return 'Śliwkowy / bordowy';
+  return light>58?'Pudrowy róż':'Malinowy';
+ }
+ if(H>=300&&H<330)return light<42?'Śliwkowy':'Magenta / fuksja';
+ if(H>=270&&H<300)return light<38?'Ciemny fiolet':'Fiolet';
+ if(H>=245&&H<270)return light<35?'Granatowo-fioletowy':'Fioletowo-niebieski';
+ if(H>=205&&H<245)return light<30?'Granatowy':(light>70?'Jasny błękit':'Niebieski');
+ if(H>=185&&H<205)return light>65?'Jasny turkus':'Turkus / morski';
+ if(H>=160&&H<185)return light<35?'Ciemny morski':'Morska zieleń';
+ if(H>=85&&H<160)return light<32?'Ciemna zieleń':(light>68?'Jasna zieleń':'Zieleń');
+ if(H>=60&&H<85)return light<35?'Oliwkowy ciemny':(light>70?'Limonkowy jasny':'Oliwkowy / żółtozielony');
+ if(H>=43&&H<60)return light<38?'Musztardowy ciemny':(light>70?'Jasny żółty':'Żółty / złoty');
+ return 'Odcień pośredni';
+}
+function drawPalettes(){let q=$('#search').value.toLowerCase(),cat=$('#category').value;$('#palettes').innerHTML=data.filter(d=>(cat==='all'||d[1]===cat)&&d.join(' ').toLowerCase().includes(q)).map((d,i)=>`<button class="pal-card" data-index="${data.indexOf(d)}"><h3>${d[0]}</h3><p>${d[1]} · ${d[2]}</p><div class="strip">${d[3].map(c=>`<span style="background:${c}"></span>`).join('')}</div></button>`).join('');document.querySelectorAll('.pal-card').forEach(b=>b.onclick=()=>showDetail(data[+b.dataset.index]))}
+function showDetail(d){$('#detail').classList.remove('hidden');$('#detailTitle').textContent=d[0];$('#detailDesc').textContent=d[2];$('#detailColors').innerHTML=d[3].map(c=>colorCard([c,toName(c)])).join('');$('#copyPalette').onclick=()=>navigator.clipboard?.writeText(d[3].join(', '));$('#detail').scrollIntoView({behavior:'smooth',block:'nearest'})}
+$('#search').oninput=drawPalettes;$('#category').onchange=drawPalettes;drawPalettes();
+let sourceImage=null;
+$('#drop').onclick=e=>{if(e.target!==$('#file'))$('#file').click()};$('#drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#file').click()}};
+$('#file').onchange=e=>loadImage(e.target.files[0]);
+function loadImage(f){if(!f)return;if(!f.type.startsWith('image/'))return alert('Wybierz plik graficzny.');let url=URL.createObjectURL(f);sourceImage=new Image();sourceImage.onload=()=>{$('#preview').src=url;$('#photoArea').classList.remove('hidden');analyze();};sourceImage.src=url}
+$('#drop').ondragover=e=>{e.preventDefault();$('#drop').style.background='#e8f0eb'};$('#drop').ondrop=e=>{e.preventDefault();$('#drop').style.background='';loadImage(e.dataTransfer.files[0])};
+$('#analyze').onclick=analyze;$('#count').onchange=analyze;
+function rgbLab(r,g,b){r/=255;g/=255;b/=255;let f=v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);r=f(r);g=f(g);b=f(b);let x=(r*.4124+g*.3576+b*.1805)/.95047,y=(r*.2126+g*.7152+b*.0722),z=(r*.0193+g*.1192+b*.9505)/1.08883;let t=v=>v>.008856?Math.cbrt(v):7.787*v+16/116;let X=t(x),Y=t(y),Z=t(z);return [116*Y-16,500*(X-Y),200*(Y-Z)]}
+function labRgb(L,a,b){let y=(L+16)/116,x=a/500+y,z=y-b/200;let f=v=>v**3>.008856?v**3:(v-16/116)/7.787;x=.95047*f(x);y=f(y);z=1.08883*f(z);let r=x*3.2406+y*-1.5372+z*-.4986,g=x*-.9689+y*1.8758+z*.0415,bl=x*.0557+y*-.204+z*1.057;let cv=v=>Math.round(255*Math.max(0,Math.min(1,v<=.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-.055)));return [cv(r),cv(g),cv(bl)]}
+const hexRGB=(r,g,b)=>'#'+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join('').toUpperCase();
+
+let paintingStyle='layered';
+function safeHex(value,fallback='#B98E9C'){
+ const x=String(value||'').trim();
+ return /^#[0-9a-fA-F]{6}$/.test(x)?x:fallback;
+}
+
+function makePaintingPlan(arr){
+ if(!arr||!arr.length)return;
+ lastPaintingColors=arr;
+ const palettes={
+  layered:{
+   intro:'Paleta warstwowa, ziemista i malarska: terakota spotyka się z ochrą i przygaszonym turkusem. Ciepłe plamy mają różne temperatury, a ciemny brąz daje im głębię.',
+   share:'Orientacyjnie: grunt 20%, dominanta 35%, druga warstwa 20%, przecierki 12%, cień 10%, kontrast 3%. Najmocniejszy turkus zostaw na kilka małych śladów.',
+   roles:[['#985B49','Terakotowy grunt'],['#D27B4D','Dominanta'],['#C6A04A','Ochra / druga warstwa'],['#F0D9B8','Jasne przecierki'],['#49352F','Głęboki cień'],['#477D79','Przygaszony turkus']],
+   stages:[
+    ['1. Terakotowy grunt','#985B49','Połóż cienką, nierówną warstwę. Pozostaw prześwity i nie zakrywaj całego podłoża.'],
+    ['2. Dominujące plamy','#D27B4D','Rozmieść największe plamy ciepłej terakoty. Zostaw między nimi miejsca na grunt i inne tony.'],
+    ['3. Ochra i półtony','#C6A04A','Wprowadź ochrę na stykach plam i w kilku oddalonych miejscach, żeby prowadziła wzrok przez obraz.'],
+    ['4. Jasne przecierki','#F0D9B8','Suchym pędzlem lub szpachelką przeciągnij kremem po fakturze, odsłaniając fragmenty warstw spod spodu.'],
+    ['5. Cień i kontrapunkt','#49352F','Pogłęb wybrane miejsca brązem. Turkus dodaj oszczędnie, w małych punktach równoważących ciepło.']
+   ]
+  },
+  light:{
+   intro:'Jasna, ale nie wyprana paleta: pudrowa terakota, złamany miód, krem, szałwia i chłodny niebieskoszary cień. Odcienie są delikatne, lecz nie wszystkie są białe.',
+   share:'Orientacyjnie: jasny grunt 30%, dominanta 25%, półton 18%, światło 12%, cień 10%, akcent 5%. Nie rozjaśniaj cieni — to one utrzymają czytelność obrazu.',
+   roles:[['#D8BFA6','Jasny beżowy grunt'],['#C97865','Pudrowa terakota'],['#D9B77E','Miodowy półton'],['#F5EBDD','Kremowe światło'],['#526875','Niebieskoszary cień'],['#78958A','Szałwiowy akcent']],
+   stages:[
+    ['1. Jasny grunt','#D8BFA6','Zagruntuj płótno ciepłym beżem, nie czystą bielą. Miejscami pozostaw widoczną fakturę.'],
+    ['2. Pudrowa dominanta','#C97865','Rozmieść terakotowe plamy tak, by były czytelne na jasnym podłożu.'],
+    ['3. Miodowy półton','#D9B77E','Dodaj ciepły żółtawy półton, który połączy różowo-terakotowe fragmenty z kremem.'],
+    ['4. Kremowe światło','#F5EBDD','Nałóż oszczędne, jasne przecierki na najwyższe partie faktury.'],
+    ['5. Chłodny cień i szałwia','#526875','Użyj niebieskoszarego cienia w niewielu miejscach. Szałwię powtórz w kilku małych akcentach.']
+   ]
+  },
+  bold:{
+   intro:'Paleta ekspresyjna o mocnym, ale kontrolowanym kontraście: granatowo-fioletowy grunt, cynobrowa czerwień, złota żółć i turkus. Jasny krem rozdziela intensywne plamy.',
+   share:'Orientacyjnie: grunt 20%, dominanta 30%, druga plama 20%, światło 10%, cień 12%, kontrast 8%. Wybierz czerwień jako główną; żółć i turkus niech ją wspierają, a nie walczą o pierwszeństwo.',
+   roles:[['#34314F','Granatowo-fioletowy grunt'],['#E34F35','Cynobrowa dominanta'],['#F0B832','Złota żółć'],['#F5E4C8','Jasny krem'],['#243C4A','Głęboki cień'],['#2D9C95','Turkusowy kontrast']],
+   stages:[
+    ['1. Ciemny grunt','#34314F','Połóż cienką bazę granatowo-fioletową. Niech prześwituje pomiędzy energicznymi plamami.'],
+    ['2. Cynobrowa dominanta','#E34F35','Wprowadź największe, nieregularne plamy czerwieni. Zmieniaj ich wielkość i kierunek.'],
+    ['3. Złota żółć','#F0B832','Dodaj żółć obok czerwieni, ale nie mieszaj jej wszędzie z czerwienią — zachowaj czyste fragmenty obu barw.'],
+    ['4. Kremowe światło','#F5E4C8','Rozświetl wybrane krawędzie i faktury złamanym kremem.'],
+    ['5. Cień i turkus','#243C4A','Pogłęb kompozycję chłodnym cieniem. Turkus dodaj w kilku zdecydowanych, małych akcentach.']
+   ]
+  },
+  warm:{
+   intro:'Paleta ciepła: terakota, pomarańcz, złocista ochra, krem i głęboki brąz. Przygaszony turkus jest jedynym chłodnym kontrapunktem — użyj go oszczędnie.',
+   share:'Orientacyjnie: grunt 20%, pomarańczowa dominanta 30%, ochra 20%, krem 12%, cień 15%, turkus 3%. Najwięcej miejsca przeznacz na ciepłe barwy; turkus ma tylko ożywić całość.',
+   roles:[['#A65F3B','Ciepły terakotowy grunt'],['#D97736','Pomarańczowa dominanta'],['#C49A3A','Złocista ochra'],['#F2D7A0','Kremowe przecierki'],['#59382B','Głęboki ciepły cień'],['#397C78','Chłodny turkusowy akcent']],
+   stages:[
+    ['1. Terakotowy grunt','#A65F3B','Rozprowadź cienką warstwę terakoty. Pozostaw nieregularne prześwity.'],
+    ['2. Pomarańczowa dominanta','#D97736','Wprowadź ciepły pomarańcz w największych plamach. Nie wypełniaj nim całego obrazu.'],
+    ['3. Złocista ochra','#C49A3A','Dodaj ochrę obok pomarańczu i miejscami na jego krawędziach. To ciepły półton, który połączy plamy.'],
+    ['4. Kremowe światło','#F2D7A0','Nałóż jasny krem suchym pędzlem lub szpachelką, tylko na wybrane fragmenty.'],
+    ['5. Ciepły cień i turkusowy akcent','#59382B','Pogłęb miejsca ciemnym brązem. Turkus dodaj bardzo oszczędnie — jako kilka kontrastujących śladów.']
+   ]
+  },
+  complementary:{
+   intro:'Paleta dopełniająca oparta na parze niebieski–pomarańczowy. To mocny kontrast temperatury i barwy, złagodzony szaroniebieskim gruntem, kremem i ciemnym granatem.',
+   share:'Orientacyjnie: grunt 20%, dominanta niebieska 30%, pomarańcz 18%, krem 12%, cień 15%, złoty akcent 5%. Nie używaj niebieskiego i pomarańczowego w równych proporcjach — wybierz jedną dominantę.',
+   roles:[['#687985','Szaroniebieski grunt'],['#286A9B','Kobaltowa dominanta'],['#E58A3A','Pomarańcz dopełniający'],['#F1DEC2','Kremowe przecierki'],['#273D54','Granatowy cień'],['#D8B45A','Złoty akcent']],
+   stages:[
+    ['1. Szaroniebieski grunt','#687985','Zacznij od przygaszonego, pośredniego tonu, który nie będzie konkurował z czystymi barwami.'],
+    ['2. Kobaltowa dominanta','#286A9B','Nałóż większe plamy niebieskiego. Zostaw pomiędzy nimi przestrzeń na kontrast.'],
+    ['3. Pomarańcz dopełniający','#E58A3A','Wprowadź pomarańcz w mniejszych plamach. Powtórz go w kilku miejscach, aby zrównoważyć niebieski.'],
+    ['4. Kremowe przecierki','#F1DEC2','Dodaj złamane, ciepłe światło, które złagodzi zestawienie mocnych barw.'],
+    ['5. Granatowy cień i złoto','#273D54','Pogłęb wybrane miejsca granatem. Złoty akcent stosuj punktowo, nie jako kolejną dużą plamę.']
+   ]
+  },
+  neon:{
+   intro:'Paleta neonowa: elektryczny róż, limonkowa zieleń i cyjan na bardzo ciemnym, granatowo-fioletowym podłożu. To zestaw celowo jaskrawy i graficzny — wymaga oszczędnego dawkowania.',
+   share:'Orientacyjnie: ciemny grunt 35%, neonowy róż 25%, limonka 12%, jasne światło 8%, cień 15%, cyjan 5%. Ciemne tło powinno zajmować dużo miejsca; trzy neony nie mogą konkurować na całej powierzchni.',
+   roles:[['#18152F','Głęboki granatowy grunt'],['#FF3B9D','Neonowy róż'],['#B7FF2A','Neonowa limonka'],['#F4F0FF','Chłodne jasne światło'],['#11101B','Prawie czarny cień'],['#00D9E8','Elektryczny cyjan']],
+   stages:[
+    ['1. Głęboki grunt','#18152F','Zbuduj ciemne podłoże. Pozostaw je widoczne — to ono sprawi, że nasycone kolory będą świecić.'],
+    ['2. Neonowy róż','#FF3B9D','Wybierz róż jako główną plamę. Rozmieść go w kilku skupiskach, nie równomiernie.'],
+    ['3. Limonkowa energia','#B7FF2A','Dodaj limonkę w mniejszych, wyraźnych fragmentach. Unikaj mieszania jej z różem na dużych powierzchniach.'],
+    ['4. Chłodne światło','#F4F0FF','Wprowadź kilka niemal białych refleksów. Nie rozjaśniaj nimi całej kompozycji.'],
+    ['5. Cyjan i głęboki cień','#11101B','Podkreśl wybrane krawędzie cyjanem, a najciemniejszym odcieniem odtwórz głębię i separację plam.']
+   ]
+  }
+ };
+ const chosen=palettes[paintingStyle]||palettes.layered;
+ const safeRoles=chosen.roles.map(([hex,label])=>[safeHex(hex),label]);
+ $('#paintingPlan').innerHTML=`
+ <div class="tip" style="margin-bottom:12px">${chosen.intro}</div>
+ <div class="palette" style="margin:12px 0">${safeRoles.map(c=>colorCard(c)).join('')}</div>
+ <div class="tip"><b>Jak podzielić kolory?</b><br>${chosen.share}</div>
+ ${chosen.stages.map(st=>`<div style="display:grid;grid-template-columns:42px 1fr;gap:10px;margin-top:14px;align-items:start"><div style="height:38px;border-radius:9px;background:${safeHex(st[1])}"></div><div><b>${st[0]}</b><div class="muted">${st[2]}</div><small>${safeHex(st[1])}</small></div></div>`).join('')}
+ <p class="note" style="margin-top:14px">To autorska propozycja harmonii kolorystycznej, a nie jedyna poprawna odpowiedź. Ostateczny efekt zależy od tematu, proporcji plam, pigmentów i warstw farby. Zrób próbkę przed malowaniem obrazu.</p>`;
+}
+
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-painting-style]');if(!b)return;
+ paintingStyle=b.dataset.paintingStyle;
+ document.querySelectorAll('[data-painting-style]').forEach(x=>{x.classList.toggle('active',x===b);});
+ if(lastPaintingColors)makePaintingPlan(lastPaintingColors);
+});
+let lastPaintingColors=null;
+
+function analyze(){if(!sourceImage)return;let c=document.createElement('canvas'),ctx=c.getContext('2d',{willReadFrequently:true}),scale=Math.min(1,260/sourceImage.width,260/sourceImage.height);c.width=Math.max(1,Math.round(sourceImage.width*scale));c.height=Math.max(1,Math.round(sourceImage.height*scale));ctx.drawImage(sourceImage,0,0,c.width,c.height);let dat=ctx.getImageData(0,0,c.width,c.height).data,pts=[];for(let y=0;y<c.height;y+=1)for(let x=0;x<c.width;x+=1){let i=(y*c.width+x)*4,r=dat[i],g=dat[i+1],b=dat[i+2];if(dat[i+3]<180)continue;let lab=rgbLab(r,g,b);pts.push({rgb:[r,g,b],lab})}
+let k=+$('#count').value,cent=[];let first=pts[Math.floor(pts.length*.43)];cent.push(first.lab);while(cent.length<k){let ds=pts.map(p=>Math.min(...cent.map(q=>dist(p.lab,q))));let sum=ds.reduce((a,b)=>a+b,0),t=Math.random()*sum,idx=0;for(;idx<ds.length-1&&t>0;idx++)t-=ds[idx];cent.push(pts[idx].lab)}
+let groups;for(let it=0;it<16;it++){groups=cent.map(()=>({sum:[0,0,0],n:0,pts:[]}));for(let p of pts){let j=0,md=1e9;cent.forEach((q,i)=>{let d=dist(p.lab,q);if(d<md){md=d;j=i}});let g=groups[j];g.sum[0]+=p.lab[0];g.sum[1]+=p.lab[1];g.sum[2]+=p.lab[2];g.n++;}cent=groups.map((g,i)=>g.n?g.sum.map(v=>v/g.n):cent[i])}
+groups=cent.map(()=>({sum:[0,0,0],n:0}));for(let p of pts){let j=0,md=1e9;cent.forEach((q,i)=>{let d=dist(p.lab,q);if(d<md){md=d;j=i}});groups[j].sum=groups[j].sum.map((v,i)=>v+p.rgb[i]);groups[j].n++}
+let colors=groups.map(g=>({hex:g.n?hexRGB(...g.sum.map(v=>v/g.n)):'#888888',n:g.n})).filter(g=>g.n).sort((a,b)=>b.n-a.n);let arr=colors.map(g=>[g.hex,toName(g.hex)]);makePaintingPlan(arr);$('#extracted').innerHTML=colors.map(g=>colorCard([g.hex,toName(g.hex)])+`<small>${Math.round(g.n/pts.length*100)}% zdjęcia</small>`).join('');renderPaintRecipes(colors);makeSuggestions(arr)}
+function dist(a,b){return (a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2}
+function hexHsl(hex){hex=safeHex(hex);let h=hex.slice(1),r=parseInt(h.slice(0,2),16)/255,g=parseInt(h.slice(2,4),16)/255,b=parseInt(h.slice(4,6),16)/255,max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,H=0,S=max===0?0:d/(1-Math.abs(2*((max+min)/2)-1)),L=(max+min)/2;if(d){if(max===r)H=60*(((g-b)/d)%6);else if(max===g)H=60*((b-r)/d+2);else H=60*((r-g)/d+4)}return [((H+360)%360),S,L]}
+function hslHex(h,s,l){h=((h%360)+360)%360;s=Math.max(0,Math.min(1,s));l=Math.max(0,Math.min(1,l));let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;if(h<60)[r,g,b]=[c,x,0];else if(h<120)[r,g,b]=[x,c,0];else if(h<180)[r,g,b]=[0,c,x];else if(h<240)[r,g,b]=[0,x,c];else if(h<300)[r,g,b]=[x,0,c];else[r,g,b]=[c,0,x];return hexRGB((r+m)*255,(g+m)*255,(b+m)*255)}
+
+// Katalog nazw i pigmentów Renesans A'Kryl — nazwy/pigmenty wg oficjalnej karty producenta.
+const renesans=[
+['Biel tytanowa','#f3f0e7','PW6'],['Biel antyczna','#e6d8bd','PW6 PY42'],['Żółta z Neapolu','#d8bb75','PW6 PY42 PY1'],['Żółta cytrynowa','#f0e02b','PY3'],['Żółta średnia','#e6c329','PY3 PY74'],['Żółta ciemna','#d9a51d','PY74'],['Żółta pomarańczowa','#e58a24','PY74 PO5'],['Cynober','#d94b35','PO5 PR112'],['Czerwień błyszcząca','#d92d2e','PR254'],['Magenta','#c32c78','PR122'],['Karmin','#a92b4c','PR170 PR122'],['Ugier żółty','#bd8739','PY42'],['Zieleń błyszcząca','#46a34b','PY3 PG7'],['Zieleń ciemna','#315c38','PY74 PG7'],['Zieleń ftalo','#087c52','PG7'],['Zieleń chromowa','#47734b','PG17'],['Zieleń soczysta','#659447','PG8'],['Błękit nieba','#79b9d4','PW6 PB15:1 PG7'],['Błękit ftalo','#087eaa','PB15:3'],['Ultramaryna','#343d9b','PB29'],['Granat marynarski','#25334e','PB15:1 PV23 PBk11'],['Fiolet','#654078','PV23'],['Ziemia sieneńska palona','#9b5039','PR101 PBk11'],['Ziemia brunatna','#79513d','PR101'],['Brunatna Van Dycka','#51443e','PR101 PBk11'],['Czerń karbonowa','#252525','PBk7'],['Kość słoniowa pastelowa','#d8c8a9','PW6 PY42 PR101'],['Cielisty jasny','#d89b8e','PR170 PR122'],['Cielisty ciemny','#a96e60','PW6 PR2 PR122'],['Bordowy','#672d43','PR170 PR122 PR101 PB29'],['Błękit królewski','#4168a1','PW6 PB15:3 PY42'],['Turkusowy','#269b9c','PW6 PG7 PB15:1'],['Błękit kobaltowy','#668eb5','PW6 PB15:1'],['Błękit pastelowy','#a5c6d6','PW6 PB15 PG7'],['Ziemia zielona','#758d70','PW6 PB15:3 PG8'],['Zieleń wenecka','#718b72','PW6 PB29 PG8'],['Zieleń Renesans','#5b936c','PW6 PB15 PG8'],['Zieleń ultramaryna','#176b60','PB15:3 PG7'],['Umbra','#665044','PR101 PBk11'],['Umbra palona','#513d35','PR101 PBk11'],['Zieleń oliwna','#7d7939','PY42 PY74 PG7'],['Szary mineralny jasny','#aaa69a','PW6 PY42 PR101 PBk7'],['Szary mineralny ciemny','#66665e','PW6 PY42 PBk7']
+];
+function hexDist(a,b){let A=a.match(/[0-9a-f]{2}/gi).map(x=>parseInt(x,16)),B=b.match(/[0-9a-f]{2}/gi).map(x=>parseInt(x,16));return Math.sqrt(A.reduce((v,x,i)=>v+(x-B[i])**2,0))}
+function renderPaintRecipes(colors){
+ let html='<h3>Jak uzyskać te kolory farbami akrylowymi Renesans A’Kryl?</h3><p class="note">Poniżej dobieram najbliższe odcienie z gamy Renesans i proponuję kierunek mieszania. Proporcje są orientacyjne — zacznij od małej porcji, dodawaj mocny pigment stopniowo i wykonaj próbkę po wyschnięciu.</p>';
+ colors.slice(0,7).forEach((g,i)=>{
+  let nearest=[...renesans].sort((a,b)=>hexDist(a[1],g.hex)-hexDist(b[1],g.hex)).slice(0,3);
+  let target=hexHsl(g.hex),light=target[2];
+  let modifiers=light<.28?'Biel tytanowa (rozjaśniaj stopniowo)':'';
+  if(light>.78)modifiers='Umbra lub ultramaryna (przyciemniaj minimalnie)';
+  let suggestions=nearest.map((p,j)=>`<div style="display:flex;gap:9px;align-items:center;margin:7px 0"><span style="width:30px;height:30px;border-radius:7px;background:${p[1]};border:1px solid #0001;flex:none"></span><span><b>${p[0]}</b> <small class="muted">${p[2]}</small><br><small class="muted">Najbliższy odcień katalogowy ${j===0?'— zacznij od niego':'— alternatywa'}</small></span></div>`).join('');
+  html+=`<div style="border-top:1px solid var(--line);padding:12px 0"><b>${i+1}. ${g.hex} — ${toName(g.hex)}</b><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px"><div>${suggestions}</div><div class="tip"><b>Jak korygować mieszankę</b><br>${light>.68?'Jeśli farba jest za ciemna, dodawaj biel tytanową małymi porcjami.':light<.32?'Jeśli kolor jest zbyt jasny, dodawaj ciemniejszy odpowiednik lub odrobinę umbry.':'Zacznij od najbliższej farby; koryguj odcień niewielką ilością koloru sąsiedniego na kole barw.'}<br><br>Przygaszenie: odrobina koloru dopełniającego. ${modifiers}</div></div></div>`;
+ });
+ html+='<p class="note">Uwaga: wartości HEX farb są poglądowymi przybliżeniami, nie oficjalnymi wzornikami producenta. Rzeczywisty kolor zależy od partii, podłoża, grubości warstwy i wyschnięcia. Pigmenty i nazwy zaczerpnięto z palety A’Kryl Renesans.</p><p class="note"><a href="https://renesanspolska.pl/discover/farby-akrylowe/akryl/" target="_blank" rel="noopener">Oficjalna paleta A’Kryl Renesans i indeksy pigmentów</a></p>';
+ $('#paintRecipes').innerHTML=html;
+}
+function makeSuggestions(arr){let base=arr[0]?.[0]||'#087F83',[h,s,l]=hexHsl(base);let sets=[['Harmonia — kolory sąsiednie',[h-28,h,h+28].map(x=>hslHex(x,Math.min(.55,s),l))],['Nieoczywisty kontrast',[h,h+155,h+180].map((x,i)=>hslHex(x,i===0?s*.8:.48,i===0?l:.58))],['Ciepło i chłód',[h,h+180,h+35].map((x,i)=>hslHex(x,.38,i===1?.68:.48))]];$('#generated').innerHTML=sets.map(z=>`<h3 style="margin-top:15px">${z[0]}</h3><div class="palette">${z[1].map(c=>colorCard([c,toName(c)])).join('')}</div>`).join('')}
+$('#preview').onclick=e=>{let r=e.target.getBoundingClientRect(),x=Math.round((e.clientX-r.left)/r.width*sourceImage.width),y=Math.round((e.clientY-r.top)/r.height*sourceImage.height),c=document.createElement('canvas');c.width=c.height=1;let ctx=c.getContext('2d');ctx.drawImage(sourceImage,x,y,1,1,0,0,1,1);let d=ctx.getImageData(0,0,1,1).data,hex=hexRGB(d[0],d[1],d[2]);$('#picked').innerHTML=colorCard([hex,toName(hex)])};
+const wheel=$('#wheel'),svgNS='http://www.w3.org/2000/svg';let base='#167C80',scheme='analog';
+function renderWheel(){wheel.innerHTML='<circle cx="210" cy="210" r="180" fill="#fff" stroke="#ddd"/>';for(let i=0;i<360;i+=2){let p1=polar(210,210,95,i),p2=polar(210,210,180,i),p3=polar(210,210,180,i+2),p4=polar(210,210,95,i+2),el=document.createElementNS(svgNS,'path');el.setAttribute('d',`M${p1.x},${p1.y} L${p2.x},${p2.y} A180,180 0 0 1 ${p3.x},${p3.y} L${p4.x},${p4.y} A95,95 0 0 0 ${p1.x},${p1.y}`);el.setAttribute('fill',`hsl(${i},78%,54%)`);wheel.append(el)}let [h,s,l]=hexHsl(base);let angles=scheme==='analog'?[-30,0,30]:scheme==='comp'?[0,180]:scheme==='split'?[0,150,210]:scheme==='triad'?[0,120,240]:scheme==='tetrad'?[0,90,180,270]:[0,0,0,0];let hues=angles.map(a=>h+a);let center=document.createElementNS(svgNS,'circle');center.setAttribute('cx',210);center.setAttribute('cy',210);center.setAttribute('r',62);center.setAttribute('fill','#fffdfa');center.setAttribute('stroke','#ddd');wheel.append(center);let dot=document.createElementNS(svgNS,'circle');let p=polar(210,210,137,h);dot.setAttribute('cx',p.x);dot.setAttribute('cy',p.y);dot.setAttribute('r',10);dot.setAttribute('fill','#fff');dot.setAttribute('stroke','#222');dot.setAttribute('stroke-width',3);wheel.append(dot);let pts=hues.map(a=>polar(210,210,137,a));if(pts.length>1){let line=document.createElementNS(svgNS,'polygon');line.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));line.setAttribute('fill','#fff8');line.setAttribute('stroke','#333');line.setAttribute('stroke-width',2);wheel.append(line)}$('#baseHex').textContent=base.toUpperCase();let cols=hues.map((a,i)=>scheme==='mono'?hslHex(h,s,[.3,.42,.55,.68][i%4]):hslHex(a,Math.max(.25,s),l));$('#wheelResult').innerHTML=cols.map(c=>`<button onclick="navigator.clipboard?.writeText('${c}')"><div class="chip" style="background:${c}"></div><small>${c}</small></button>`).join('');let desc={analog:'Sąsiednie odcienie tworzą płynne, spokojne przejścia. Dobre do nieba, wody i harmonijnych pejzaży.',comp:'Barwa dopełniająca leży naprzeciwko. Użyj jej jako akcentu albo do tonowania barwy w mieszance.',split:'Dwa sąsiednie odcienie po przeciwnej stronie koła dają kontrast mniej dosłowny niż para dopełniająca.',triad:'Trzy równomiernie rozłożone barwy dają żywą, ale uporządkowaną kompozycję.',tetrad:'Dwie pary dopełniające. Wybierz jedną dominantę, pozostałe stosuj oszczędniej.',mono:'Jedna rodzina barw w kilku jasności/nasyceniach. Spójna i subtelna gama.'};$('#schemeTip').textContent=desc[scheme]}
+function polar(cx,cy,r,a){let t=(a-90)*Math.PI/180;return{x:cx+r*Math.cos(t),y:cy+r*Math.sin(t)}}
+wheel.onclick=e=>{let r=wheel.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*420-210,y=(e.clientY-r.top)/r.height*420-210,h=(Math.atan2(x,-y)*180/Math.PI+360)%360;base=hslHex(h,.65,.48);$('#baseColor').value=base;renderWheel()};
+$('#baseColor').oninput=e=>{base=e.target.value;renderWheel()};$('#schemes').onclick=e=>{let b=e.target.closest('button');if(!b)return;scheme=b.dataset.s;document.querySelectorAll('#schemes button').forEach(x=>x.classList.toggle('active',x===b));renderWheel()};renderWheel();
+
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Nie udało się uruchomić trybu offline:', err));
+  });
+}
+</script>
+
+</body></html>
